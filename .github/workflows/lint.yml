@@ -1,0 +1,34 @@
+name: lint
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  shellcheck:
+    name: shellcheck (sh scripts)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run shellcheck
+        run: shellcheck install.sh start-webui.sh start-cli.sh
+
+  powershell-parse:
+    name: PowerShell syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $errs = $null
+          foreach ($f in @('install.ps1', 'start-webui.ps1', 'start-cli.ps1')) {
+            $errs = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $f), [ref]$null, [ref]$errs)
+            if ($errs.Count -gt 0) {
+              $errs | ForEach-Object { Write-Error "  $f : $($_.Message)" }
+              exit 1
+            }
+            Write-Host "OK: $f"
+          }
