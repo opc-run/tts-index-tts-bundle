@@ -9,8 +9,10 @@
 流程：
 1. 收集 skill 文档：skills/tts-index-tts-bundle/ 下所有文件（SKILL.md、references/*）。
 2. 从整合包根目录实时汇入外壳脚本到 zip 的 assets/bundle/ 路径
-   （install.* / start-*.* / stop-webui.* / fix-pagefile.bat / README.md / LICENSE），
+   （install.ps1|.sh / start-*.* / stop-webui.ps1 / fix-pagefile.ps1 / README.md），
    避免在 skill 源目录里重复存放一份。
+   **注意：zip 不含任何 .bat 文件，也不含 LICENSE**（skillhub 市场拒绝这两类），
+   Windows 入口统一用 .ps1。
 3. 校验 frontmatter 的 name/description、zip 必需条目、无本机绝对路径泄漏。
 
 外壳脚本源文件只保存在整合包根目录；改动根目录脚本后重跑本脚本即可同步进 zip。
@@ -29,14 +31,15 @@ SKILL_NAME = "tts-index-tts-bundle"
 SRC = os.path.join(ROOT, "skills", SKILL_NAME)
 OUT = os.path.join(ROOT, "skills", "dist", f"{SKILL_NAME}.zip")
 
-# 从整合包根目录汇入 zip assets/bundle/ 的外壳文件清单
+# 从整合包根目录汇入 zip assets/bundle/ 的外壳文件清单。
+# 注意：不含任何 .bat（skillhub 市场拒绝 bat 文件），Windows 入口统一用 .ps1。
 BUNDLE_FILES = [
-    "install.ps1", "install.bat", "install.sh",
-    "start-cli.ps1", "start-cli.bat", "start-cli.sh",
-    "start-webui.ps1", "start-webui.bat", "start-webui.sh",
-    "stop-webui.ps1", "stop-webui.bat",
-    "fix-pagefile.bat",
-    "README.md", "LICENSE",
+    "install.ps1", "install.sh",
+    "start-cli.ps1", "start-cli.sh",
+    "start-webui.ps1", "start-webui.sh",
+    "stop-webui.ps1",
+    "fix-pagefile.ps1",
+    "README.md",
 ]
 
 

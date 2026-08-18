@@ -9,29 +9,29 @@ description: 驱动本地 IndexTTS-2.5 整合包（tts-index-tts-bundle，跨 Wi
 
 本 skill 让 agent 直接操作整合包内已安装的 IndexTTS-2.5 完成本地推理：**文本 → 语音（.wav）**，支持 5 种语言，可用 3–10 秒参考音频克隆音色。所有命令在**整合包根目录**（当前工作区）执行，脚本内部用 `$PSScriptRoot` / `BASH_SOURCE` 定位，不依赖固定磁盘路径。
 
-**跨平台**：整合包同时提供 Windows（`.ps1` / `.bat`）与 Linux/macOS（`.sh`）两套脚本，参数风格不同（PowerShell 用 `-Text`，Bash 用 `--text`）。**执行任何操作前先判断当前操作系统**，按下表选择脚本，切勿跨平台混用：
+**跨平台**：整合包同时提供 Windows 与 Linux/macOS 两套脚本（Windows 为 `.ps1`，另有 `.bat` 仅供整合包用户双击；Linux/macOS 为 `.sh`），参数风格不同（PowerShell 用 `-Text`，Bash 用 `--text`）。**执行任何操作前先判断当前操作系统**，按下表选择脚本，切勿跨平台混用：
 
 | 平台 | 判断方法 | 脚本 | venv Python 路径 |
 |---|---|---|---|
-| Windows | 存在 `C:\Windows` 或 `System32` 路径 | `.ps1`（agent 用 `powershell.exe -File` 调用）；`.bat` 供用户双击 | `index-tts\.venv\Scripts\python.exe` |
+| Windows | 存在 `C:\Windows` 或 `System32` 路径 | `.ps1`（agent 用 `powershell.exe -File` 调用）；`.bat` 仅为整合包自带的双击入口，skill 不分发 | `index-tts\.venv\Scripts\python.exe` |
 | Linux / macOS | 存在 `/bin/bash`，无 `C:\` 盘符 | `.sh`（先 `chmod +x`） | `index-tts\.venv\bin\python` |
 
 项目结构：
 
 ```
 根目录/
-├── install.ps1 / install.bat / install.sh # 一键安装（环境 + 依赖 + 模型）
+├── install.ps1|.bat|.sh                   # 一键安装（环境 + 依赖 + 模型）
 ├── start-cli.ps1|.bat|.sh                 # 命令行合成（推荐，确定性输出）
 ├── start-webui.ps1|.bat|.sh               # 启动 Web UI（交互式）
 ├── stop-webui.ps1 / stop-webui.bat        # 停止 Web UI（仅 Windows）
-├── fix-pagefile.bat                       # 修复 Windows 页面文件过小（os error 1455）
+├── fix-pagefile.ps1|.bat                  # 修复 Windows 页面文件过小（os error 1455）
 ├── index-tts/                             # 官方源码 + .venv 虚拟环境
 ├── checkpoints/                           # 模型：config.yaml + hf_cache 辅助模型
 ├── tools/  python/  cache/                # 便携工具链与缓存
 └── output/                                # CLI 输出音频
 ```
 
-**本 skill 自带外壳脚本**（zip 内路径 `assets/bundle/`，约 40 KB）：上表中的 `install.*` / `start-*.*` / `stop-webui.*` / `fix-pagefile.bat` / `README.md` / `LICENSE` 均已随 skill 分发。目标机器上若没有整合包，agent 先做**任务 0 部署**，再走后续流程。维护说明：这些外壳脚本的**源文件只保存在整合包根目录**，`assets/bundle/` 是打包时由 `tools/package-skill.py` 自动生成，不要在此处重复存放。
+**本 skill 自带外壳脚本**（zip 内路径 `assets/bundle/`，约 40 KB）：`install.ps1|.sh` / `start-cli.ps1|.sh` / `start-webui.ps1|.sh` / `stop-webui.ps1` / `fix-pagefile.ps1` / `README.md`。**zip 内不含任何 `.bat`，也不含 `LICENSE`**（市场不允许这两类文件）——`.bat` 仅为整合包自带的双击入口，agent 一律用 `.ps1`（Windows）或 `.sh`（Linux/macOS）。目标机器上若没有整合包，agent 先做**任务 0 部署**，再走后续流程。维护说明：这些外壳脚本的**源文件只保存在整合包根目录**，`assets/bundle/` 是打包时由 `tools/package-skill.py` 自动生成，不要在此处重复存放。
 
 ## 何时使用
 
@@ -196,7 +196,7 @@ chmod +x install.sh   # 首次使用
 常用参数：`--model-source auto|huggingface|modelscope`（默认 `auto`=ModelScope）、`--py-mirror none|aliyun|tuna|tsinghua`、`--git-mirror auto|none|URL`、`--skip-models`、`--extras webui`（默认）。**注意：`install.sh` 没有 `-InstallRoot` 等价参数**——必须安装在整合包所在目录，不能指定其他安装根目录。
 
 - Linux 依赖提示：缺 git 时 `sudo apt-get install -y git`（Debian/Ubuntu）或 `brew install git`（macOS）；建议装 ffmpeg 以支持音频导出。
-- 两平台的 `.bat` 双击用法仅 Windows 有效；Linux/macOS 用 `./xxx.sh`。
+- skill zip 内只有 `.ps1`（Windows）与 `.sh`（Linux/macOS），**没有 `.bat`**；整合包自带的 `.bat` 仅供双击，agent 不依赖它。
 
 ## 故障排查
 
@@ -204,7 +204,7 @@ chmod +x install.sh   # 首次使用
 
 | 症状 | 平台 | 大概率原因 | 处置 |
 |---|---|---|---|
-| `os error 1455` / `页面文件太小` / `Not enough memory` | Windows | 系统页面文件不足 | 运行 `fix-pagefile.bat`（自动申请管理员权限扩大页面文件），必要时重启；若工作区没有该文件，从 skill 的 `assets/bundle/fix-pagefile.bat` 复制 |
+| `os error 1455` / `页面文件太小` / `Not enough memory` | Windows | 系统页面文件不足 | 运行 `powershell.exe -NoProfile -ExecutionPolicy Bypass -File ".\fix-pagefile.ps1"`（自动申请管理员权限扩大页面文件），必要时重启；若工作区没有该文件，从 skill 的 `assets/bundle/fix-pagefile.ps1` 复制 |
 | `Cannot allocate memory` / OOM（`dmesg` 有 `Out of memory`） | Linux/macOS | swap / 内存不足 | `free -h` 查看，加 swap 或降低并发；12 GB 卡务必 FP16 |
 | `CUDA out of memory` 但 `nvidia-smi` 显存空闲 | Windows | 仍是页面文件问题 | 同上；12 GB 卡务必 FP16 |
 | `127.0.0.1 拒绝连接` | 全平台 | 辅助模型未下完 / 启动中 | 等模型加载；或 `checkpoints/hf_cache` 补全 w2v-bert-2.0 |

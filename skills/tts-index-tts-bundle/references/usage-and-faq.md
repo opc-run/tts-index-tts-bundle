@@ -6,7 +6,7 @@
 
 ## 0. 首次部署（目标机器无整合包时）
 
-skill 的 `assets/bundle/` 自带整合包外壳脚本：`install.*` / `start-cli.*` / `start-webui.*` / `stop-webui.*` / `fix-pagefile.bat` / `README.md` / `LICENSE`。若工作区根目录没有这些脚本：
+skill 的 `assets/bundle/` 自带整合包外壳脚本：`install.ps1|.sh` / `start-cli.ps1|.sh` / `start-webui.ps1|.sh` / `stop-webui.ps1` / `fix-pagefile.ps1` / `README.md`。**zip 内不含 `.bat` 也不含 `LICENSE`**（市场不允许这两类文件），Windows 一律用 `.ps1`。若工作区根目录没有这些脚本：
 
 1. 把 `assets/bundle/` 下全部文件复制到工作区根目录；Linux/macOS 执行 `chmod +x install.sh start-cli.sh start-webui.sh`。
 2. 运行对应平台安装脚本（见 SKILL.md 任务 4），自动 clone `index-tts` 源码、创建 `.venv`、下载模型到 `checkpoints/`。**完整安装约需 40 GB 空间**。
@@ -53,7 +53,7 @@ skill 的 `assets/bundle/` 自带整合包外壳脚本：`install.*` / `start-cl
 
 ### Q: Windows 启动报 `页面文件太小，无法完成操作 (os error 1455)` 或 `Not enough memory`？
 A: 系统虚拟内存（页面文件）不足，与模型/代码无关。加载 w2v-bert-2.0（4.3 GB）时 Windows 内存提交瞬间超限。
-- 修复：双击 `fix-pagefile.bat`（自动请求管理员权限，把页面文件扩到 16–32 GB），按提示重启一次。若整合包未附带该文件，从 skill 的 `assets/bundle/fix-pagefile.bat` 复制。
+- 修复：`powershell -NoProfile -ExecutionPolicy Bypass -File .\fix-pagefile.ps1`（自动请求管理员权限，把页面文件扩到 16–32 GB），按提示重启一次。若整合包未附带该文件，从 skill 的 `assets/bundle/fix-pagefile.ps1` 复制。
 - 应急：`start-webui.ps1 -FP16` 可降低内存占用，但根治仍建议扩页面文件。
 
 ### Q: Linux/macOS 合成/启动时进程被杀（OOM，`dmesg` 里有 `Out of memory`）？
@@ -65,7 +65,7 @@ sudo fallocate -l 16G /swapfile && sudo chmod 600 /swapfile && sudo mkswap /swap
 
 ### Q: `torch.OutOfMemoryError: CUDA out of memory` 但 `nvidia-smi` 显示显存空闲？
 A: 不是显存不够。
-- Windows：CUDA 分配显存也受页面文件限制。运行 `fix-pagefile.bat`（缺失时从 skill `assets/bundle/` 复制）并视提示重启；12 GB 卡始终用 FP16。
+- Windows：CUDA 分配显存也受页面文件限制。运行 `fix-pagefile.ps1`（缺失时从 skill `assets/bundle/` 复制）并视提示重启；12 GB 卡始终用 FP16。
 - Linux/macOS：检查系统内存/swap 与 `ulimit -v`，并确保用 FP16。
 
 ### Q: 浏览器打开 `127.0.0.1:7860` 拒绝连接（ERR_CONNECTION_REFUSED）？
@@ -91,7 +91,7 @@ index-tts/.venv/bin/python -c "from indextts.utils.model_download import ensure_
 
 ### Q: 安装失败提示 `Failed to connect to github.com port 443`？
 A: 国内网络直连 GitHub 常被阻断。两平台默认都会先直连再依次尝试 gh-proxy.com / ghproxy.net / github.akams.cn。
-- Windows：`install.bat -GitMirror https://gh-proxy.com`。
+- Windows：`powershell -NoProfile -ExecutionPolicy Bypass -File .\install.ps1 -GitMirror https://gh-proxy.com`。
 - Linux/macOS：`./install.sh --git-mirror https://gh-proxy.com`。
 - 或先开代理手动 `git -c http.proxy=http://127.0.0.1:7890 clone --depth 1 https://github.com/index-tts/index-tts.git index-tts`，再重跑安装自动复用。
 
