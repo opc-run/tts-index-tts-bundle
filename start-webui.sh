@@ -98,7 +98,6 @@ if not w2v_ready():
     raise SystemExit("ERROR: w2v-bert-2.0 still incomplete after all download attempts")
 print(">> 所有辅助模型已就绪。")
 PYEOF
-  )
   if aux_models_ready; then
     echo "[OK] 辅助模型已就绪。"
   else

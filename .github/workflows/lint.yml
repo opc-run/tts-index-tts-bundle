@@ -9,7 +9,7 @@ jobs:
     name: shellcheck (sh scripts)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Run shellcheck
         run: shellcheck *.sh
 
@@ -17,7 +17,7 @@ jobs:
     name: PowerShell syntax check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Validate PowerShell syntax
         shell: pwsh
         run: |
