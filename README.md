@@ -32,15 +32,23 @@
 
 把整合包整个文件夹复制/解压到**可用空间 ≥ 40 GB** 的分区（如 `D:\IndexTTS-2.5-bundle`），然后：
 
+**方式 A：双击运行（推荐）**
+
+直接在文件资源管理器中双击 `install.bat`，按提示完成安装即可。
+
+> 为什么不直接双击 `install.ps1`？因为 Windows 默认把 `.ps1` 文件交给记事本打开，并不会执行。`.bat` 是包装脚本，会自动以 `-ExecutionPolicy Bypass` 绕过执行策略调用 `install.ps1`。
+
+**方式 B：命令窗口执行**
+
 ```powershell
-# 方式 A（推荐）：直接双击 install.bat —— .ps1 双击会打开记事本，
-# 所以提供了 .bat 包装脚本（自动绕过执行策略调用 install.ps1）
-# 方式 B：命令窗口执行
-cd D:\IndexTTS-2.5-bundle   # 换成你实际放置的目录
-powershell -ExecutionPolicy Bypass -File .\install.ps1
+cd D:\IndexTTS-2.5-bundle    # 换成你实际放置的目录
+.\install.bat                # 或直接调用：powershell -ExecutionPolicy Bypass -File .\install.ps1
 ```
 
-> `install.bat` 会透传参数，需要自定义时可双击后追加，或在命令窗口运行 `install.bat -CheckOnly`、`install.bat -ModelSource huggingface` 等。
+> **小提示**
+> - 若报错 `拒绝访问 (os error 5)` / 安装失败：先删除包内 `python/` 文件夹，然后右键 `install.bat` **以管理员身份运行**；或开启 Windows **开发者模式**（设置 → 隐私和安全性 → 开发者选项），再以普通身份重跑。
+> - 安装需联网下载依赖与模型，中断后**重新运行可自动续传**。
+> - `install.bat` 支持透传参数，例如 `.\install.bat -CheckOnly`、`.\install.bat -ModelSource huggingface`，详见下文[常用参数](#常用参数)。
 
 安装完成后启动 Web UI：
 
@@ -58,7 +66,7 @@ powershell -ExecutionPolicy Bypass -File .\install.ps1
 .\start-cli.bat -Text "你好，这是 IndexTTS 2.5 的测试。" -Lang ZH
 ```
 
-> 三个 `.bat`（`install.bat` / `start-webui.bat` / `start-cli.bat`）都可以**双击运行**，并支持在命令窗口追加参数透传。
+> 三个 `.bat`（`install.bat` / `start-webui.bat` / `start-cli.bat`）都可以**双击运行**，也支持在命令窗口追加参数透传。
 
 ### Linux / macOS
 
