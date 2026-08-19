@@ -375,12 +375,17 @@ if ($CheckOnly) {
         Invoke-Native { & $UV_EXE python install 3.11.13 }
         if ($LASTEXITCODE -ne 0) {
             Write-Fail "Python 3.11 安装失败。"
-            Write-Fail "常见原因与解决办法："
-            Write-Fail "  1) 杀毒软件（360/火绒/Windows Defender）拦截 uv 写文件 →"
-            Write-Fail "     把本包目录加入白名单或临时关闭实时防护，再重试。"
-            Write-Fail "  2) 包目录或所在盘无写权限 / 解压后残留只读属性 →"
-            Write-Fail "     右键目录属性取消只读；或把包移到 C 盘（如 C:\IndexTTS）重试。"
-            Write-Fail "  3) 也可先手动安装 Python 3.11（python.org 下载时勾选 Add to PATH），"
+            Write-Fail "最常见原因：uv 需要在 python\ 下创建 '3.11' 符号链接目录，"
+            Write-Fail "而普通用户默认没有创建符号链接的权限（报错：拒绝访问 os error 5）。"
+            Write-Fail "解决办法（任选其一）："
+            Write-Fail "  1) 开启 Windows 开发者模式（推荐）："
+            Write-Fail "     设置 → 隐私和安全性 → 开发者选项 → 开启『开发者模式』，"
+            Write-Fail "     然后重新运行本脚本（无需管理员）。"
+            Write-Fail "  2) 右键 install.bat → 以管理员身份运行。"
+            Write-Fail "     （注意：管理员安装后，启动 start-webui.bat 也建议用管理员。）"
+            Write-Fail "  3) 若上面仍失败：杀毒软件（360/火绒/Defender）可能拦截 →"
+            Write-Fail "     把本包目录加入白名单或临时关闭实时防护再重试。"
+            Write-Fail "  4) 也可先手动安装 Python 3.11（python.org 勾选 Add to PATH），"
             Write-Fail "     再重跑本脚本，会自动检测并复用。"
             Write-Fail "  手动验证：uv python install 3.11.13 可看到更详细报错。"
             exit 1
