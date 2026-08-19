@@ -359,8 +359,32 @@ if ($CheckOnly) {
         Write-Info "未找到可用的 Python 3.10/3.11。正在安装私有 Python 3.11 到 $PY_DIR ..."
         $env:UV_PYTHON_INSTALL_DIR = $PY_DIR
         $env:UV_CACHE_DIR = (Join-Path $CACHE_DIR "uv")
+        # uv 会在 $PY_DIR 下创建 cpython-<ver>-<platform> 安装目录和 "3.11" 版本链接目录。
+        # 上次被中断/失败的运行会留下残缺目录，uv 在它们上面重建时会报
+        # "Failed to create Python minor version link directory (os error 5)"，
+        # 所以先清理这两类残留。走到这里说明分支 (c) 的 uv find 没找到可用 3.11，
+        # 因此删掉 cpython-* / 纯数字目录是安全的。
+        if (Test-Path $PY_DIR) {
+            Get-ChildItem $PY_DIR -Force -ErrorAction SilentlyContinue | ForEach-Object {
+                if ($_.Name -like 'cpython-*' -or $_.Name -match '^\d+(\.\d+)?$') {
+                    Remove-Item $_.FullName -Recurse -Force -ErrorAction SilentlyContinue
+                    Write-Info "  已清理残留的 uv Python 目录：$($_.Name)"
+                }
+            }
+        }
         Invoke-Native { & $UV_EXE python install 3.11.13 }
-        if ($LASTEXITCODE -ne 0) { Write-Fail "Python 3.11 安装失败。"; exit 1 }
+        if ($LASTEXITCODE -ne 0) {
+            Write-Fail "Python 3.11 安装失败。"
+            Write-Fail "常见原因与解决办法："
+            Write-Fail "  1) 杀毒软件（360/火绒/Windows Defender）拦截 uv 写文件 →"
+            Write-Fail "     把本包目录加入白名单或临时关闭实时防护，再重试。"
+            Write-Fail "  2) 包目录或所在盘无写权限 / 解压后残留只读属性 →"
+            Write-Fail "     右键目录属性取消只读；或把包移到 C 盘（如 C:\IndexTTS）重试。"
+            Write-Fail "  3) 也可先手动安装 Python 3.11（python.org 下载时勾选 Add to PATH），"
+            Write-Fail "     再重跑本脚本，会自动检测并复用。"
+            Write-Fail "  手动验证：uv python install 3.11.13 可看到更详细报错。"
+            exit 1
+        }
         $exe = (Invoke-Silent { & $UV_EXE python find 3.11 } | Out-String).Trim()
         $pv = Test-Python311Exe $exe
         if (-not $pv) { Write-Fail "找不到刚安装好的 Python 3.11。"; exit 1 }
