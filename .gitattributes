@@ -1,0 +1,20 @@
+# =============================================================================
+# 行尾规范（Line Ending Policy）
+#
+# 背景：GitHub 的 zip 下载 / Actions 检出的换行符由 .gitattributes 决定。
+# 若未设置，Linux 端（git archive / ubuntu runner）会输出 LF，导致：
+#   - cmd.exe 解析 .bat 的括号块（if ( ... )）时报"命令语法不正确"；
+#   - 用户双击 install.bat 直接报错。
+# 因此 Windows 批处理 / PowerShell 入口必须强制 CRLF。
+# 注意：具体扩展名规则要写在 * 通配符之后，gitattributes 以最后匹配为准。
+# =============================================================================
+
+* text=auto
+
+*.bat  text eol=crlf
+*.cmd  text eol=crlf
+*.ps1  text eol=crlf
+*.psm1 text eol=crlf
+
+*.sh   text eol=lf
+*.bash text eol=lf
