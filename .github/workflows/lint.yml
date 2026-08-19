@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run shellcheck
-        run: shellcheck install.sh start-webui.sh start-cli.sh
+        run: shellcheck *.sh
 
   powershell-parse:
     name: PowerShell syntax check
@@ -21,14 +21,15 @@ jobs:
       - name: Validate PowerShell syntax
         shell: pwsh
         run: |
-          $errs = $null
-          foreach ($f in @('install.ps1', 'start-webui.ps1', 'start-cli.ps1')) {
+          $files = Get-ChildItem -Path . -Filter *.ps1 -File | Sort-Object Name
+          if ($files.Count -eq 0) { Write-Error "No .ps1 files found"; exit 1 }
+          foreach ($f in $files) {
             $errs = $null
             $null = [System.Management.Automation.Language.Parser]::ParseFile(
-              (Resolve-Path $f), [ref]$null, [ref]$errs)
+              (Resolve-Path $f.FullName), [ref]$null, [ref]$errs)
             if ($errs.Count -gt 0) {
-              $errs | ForEach-Object { Write-Error "  $f : $($_.Message)" }
+              $errs | ForEach-Object { Write-Error "  $($f.Name) : $($_.Message)" }
               exit 1
             }
-            Write-Host "OK: $f"
+            Write-Host "OK: $($f.Name)"
           }
